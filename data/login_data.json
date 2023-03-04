@@ -1,6 +1,6 @@
 [
     {
-        "name": "管理員",
+        "name": "admin",
         "uuid": "admin",
         "password": "super_password"
     }
