@@ -1,7 +1,33 @@
 //windows
-const { dialog, app, BrowserWindow } = require('electron')
+const { Tray, Menu, app, BrowserWindow } = require('electron')
 const path = require('path')
 const { ipcMain } = require('electron')
+//icon
+function createTray(win) {
+
+  const iconPath = path.join(__dirname, './led.png');
+  const tray = new Tray(iconPath)
+  const contextMenu = Menu.buildFromTemplate([
+
+    {
+      label: '回復',
+      click: () => win.show() // 隱藏 桌面貓咪
+    },
+    {
+      label: '結束',
+      click: () => {
+        app.isQuiting = true;
+        app.quit();
+      }
+    }
+  ])
+  tray.setToolTip('Tally Light Control')
+  tray.setContextMenu(contextMenu);
+
+  tray.on('click', () => win.show())
+
+  return tray;
+}
 //obs
 const OBSWebSocket = require('obs-websocket-js');
 
@@ -70,10 +96,12 @@ app.whenReady().then(() => {
 
 
   const win = createWindow(600, 900, 'preload.js', './web/index.html');
-
+  createTray(win);
   ipcMain.on("toMain", (event, args) => {
     let res = JSON.parse(args);
-
+    if (res.get == "hide") {
+      win.hide();
+    }
     if (res.get == "login") {
 
       let login = getlogin(res.uuid, res.password);
@@ -204,12 +232,15 @@ app.whenReady().then(() => {
         clearInterval(timer2);
       }
 
+
     }
     if (source == "VMIX") {
-
+      sendtoweb(JSON.stringify({ get: "error", data: "VMIXTally即將推出敬請期待" }));
+      obs.disconnect();
     }
     if (source == "ATEM") {
-
+      sendtoweb(JSON.stringify({ get: "error", data: "ATEMTally即將推出敬請期待" }));
+      obs.disconnect();
     }
   }
 })
