@@ -5,7 +5,7 @@ const { ipcMain } = require('electron')
 //icon
 function createTray(win) {
 
-  const iconPath = path.join(__dirname, './led.png');
+  const iconPath = path.join(__dirname, '/led.png');
   const tray = new Tray(iconPath)
   const contextMenu = Menu.buildFromTemplate([
 
@@ -36,7 +36,7 @@ const obs = new OBSWebSocket();
 //user data
 let user;
 const fs = require('fs');
-fs.readFile('./data/login_data.json', 'utf-8', (err, data) => {
+fs.readFile(__dirname + '/data/login_data.json', 'utf-8', (err, data) => {
   if (err) {
     throw err;
   }

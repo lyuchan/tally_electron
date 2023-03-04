@@ -1,10 +1,12 @@
 {
-  "name": "electron-quick-start",
+  "name": "TallyLight",
   "version": "1.0.0",
   "description": "A minimal Electron application",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "pack-dist": "electron-builder"
   },
   "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [
@@ -25,5 +27,22 @@
     "express": "^4.18.2",
     "obs-websocket-js": "^4.0.3",
     "ws": "^8.12.1"
+  },
+  "build": {
+    "appId": "com.TallyLight.app",
+    "productName": "TallyLight",
+    "directories": {
+      "output": "pack"
+    },
+    "files": [
+      "**/*",
+      "!.vscode",
+      "build/",
+      "data/"
+    ],
+    "asar": false,
+    "win": {
+      "icon": "./led.png"
+    }
   }
 }

@@ -15,7 +15,12 @@ builder.build({
 
         "win": {
             "icon": path.resolve(__dirname, 'led.png'),
-        }
+        }, "extraResources": [
+            {
+                "from": "/data",
+                "to": "data"
+            }
+        ]
     },
 })
     .then(
