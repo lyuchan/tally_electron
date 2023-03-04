@@ -381,3 +381,10 @@ tr:last-child td:last-child {
     width: 40px;
     height: 40px;
 }
+
+.hide-btn {
+    background-color: #449c7f;
+    color: #FFFFFF;
+    width: 40px;
+    height: 40px;
+}
