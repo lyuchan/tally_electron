@@ -99,47 +99,50 @@ app.whenReady().then(() => {
   createTray(win);
   ipcMain.on("toMain", (event, args) => {
     let res = JSON.parse(args);
-    if (res.get == "hide") {
-      win.hide();
-    }
-    if (res.get == "login") {
+    switch (res.get) {
+      case "hide":
+        win.hide();
+        break;
+      case "login":
+        let login = getlogin(res.uuid, res.password);
+        console.log(login);
+        if (login[0]) {
+          win.loadFile("./web/panel/index.html")
+          // win.setSize(1600, 900);
+        } else {
+          sendtoweb(JSON.stringify({ get: "login", password: login[0], name: login[1] }));
+        }
+        break;
+      case "logout":
+        win.loadFile("./web/index.html")
+        //win.setSize(600, 900);
+        break;
+      case "set":
+        source = res.source;
+        console_ip = res.ip;
+        gettallydata();
+        break;
+      case "atemip":
+        sendtoweb(JSON.stringify({ get: "atemip", data: "ok" }));
+        //atemip = res.ip;
+        //BROADCAST_ADDR = getlocal(atemip);
+        break;
 
-      let login = getlogin(res.uuid, res.password);
-      console.log(login);
-      if (login[0]) {
-        win.loadFile("./web/panel/index.html")
-        // win.setSize(1600, 900);
-      } else {
-        sendtoweb(JSON.stringify({ get: "login", password: login[0], name: login[1] }));
-      }
-    }
-    if (res.get == "logout") {
-      win.loadFile("./web/index.html")
-      //win.setSize(600, 900);
-    }
-    if (res.get == "set") {
-      source = res.source;
-      console_ip = res.ip;
-      gettallydata();
-    }
-    if (res.get == "atemip") {
-      sendtoweb(JSON.stringify({ get: "atemip", data: "ok" }));
-      //atemip = res.ip;
-      //BROADCAST_ADDR = getlocal(atemip);
-    }
+      case "tallyip":
+        sendtoweb(JSON.stringify({ get: "tallyip", ip: espAddresses }));
+        break;
+      case "tallylight":
+        sendtoweb(JSON.stringify({ get: "tallylight", data: "ok" }));
+        sendtally(res.ip, JSON.stringify([{ get: "tallyidset", id: res.data }]))
+        break;
+      case "findtally":
+        sendtoweb(JSON.stringify({ get: "findtally", data: "ok" }));
+        sendtally(res.ip, JSON.stringify([{ get: "find" }]))
+        break;
+      default:
+        console.log("get data error");
 
-    if (res.get == "tallyip") {
-      sendtoweb(JSON.stringify({ get: "tallyip", ip: espAddresses }));
     }
-    if (res.get == "tallylight") {
-      sendtoweb(JSON.stringify({ get: "tallylight", data: "ok" }));
-      sendtally(res.ip, JSON.stringify([{ get: "tallyidset", id: res.data }]))
-    }
-    if (res.get == "findtally") {
-      sendtoweb(JSON.stringify({ get: "findtally", data: "ok" }));
-      sendtally(res.ip, JSON.stringify([{ get: "find" }]))
-    }
-
   });
   // win.webContents.send("fromMain", responseObj);
   function sendtoweb(sendData) {
