@@ -1,4 +1,4 @@
-//windows
+//window
 const { Tray, Menu, app, BrowserWindow } = require('electron')
 const path = require('path')
 const { ipcMain } = require('electron')
