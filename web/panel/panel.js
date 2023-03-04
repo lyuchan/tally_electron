@@ -8,10 +8,15 @@ const Toast = Swal.mixin({
     toast: true,
     position: 'bottom-right',
     showConfirmButton: false,
-    timer: 1500,
+    timer: 3000,
     timerProgressBar: true
 })
-
+function hide() {
+    data = {
+        get: 'hide'
+    }
+    window.api.send("toMain", JSON.stringify(data));
+}
 function login() {
     const uuid = $("#uuid").val();
     const password = $("#password").val();
