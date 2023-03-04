@@ -80,14 +80,14 @@ app.whenReady().then(() => {
       console.log(login);
       if (login[0]) {
         win.loadFile("./web/panel/index.html")
-        win.setSize(1600, 900);
+        // win.setSize(1600, 900);
       } else {
         sendtoweb(JSON.stringify({ get: "login", password: login[0], name: login[1] }));
       }
     }
     if (res.get == "logout") {
       win.loadFile("./web/index.html")
-      win.setSize(600, 900);
+      //win.setSize(600, 900);
     }
     if (res.get == "set") {
       source = res.source;
@@ -187,11 +187,11 @@ app.whenReady().then(() => {
               tally(pgmid, pwvid);
             }
 
-          }, 5);
+          }, 1);
           let gettallytimer2 = setInterval(() => {
             //webtally(pgmid, pwvid);
             tally(pgmid, pwvid);
-          }, 100);
+          }, 10);
         })
         .catch((error) => {
           console.error('Failed to connect to OBS WebSocket:', error);
