@@ -11,7 +11,7 @@ function createTray(win) {
 
     {
       label: '回復',
-      click: () => win.show() // 隱藏 桌面貓咪
+      click: () => win.show()
     },
     {
       label: '結束',
@@ -67,7 +67,7 @@ const PORT = 8080;
 const espAddresses = []; // 儲存esp8266的IP地址的陣列
 const timers = {};
 let atemip = "192.168.255.255";
-let BROADCAST_ADDR = '192.168.137.255'; // 廣播地址
+let BROADCAST_ADDR = '255.255.255.255'; // 廣播地址
 const MESSAGE = Buffer.from(JSON.stringify([{
   "get": "ping"
 }]));
@@ -83,7 +83,7 @@ function createWindow(w, h, preloadjs, mainpage) {
     }
   })
   mainWindow.loadFile(mainpage)
-  //mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
   return mainWindow;
 }
 
@@ -122,10 +122,10 @@ app.whenReady().then(() => {
         console_ip = res.ip;
         gettallydata();
         break;
-      case "atemip":
-        sendtoweb(JSON.stringify({ get: "atemip", data: "ok" }));
+      case "broadcastip":
+        //sendtoweb(JSON.stringify({ get: "atemip", data: "ok" }));
         //atemip = res.ip;
-        //BROADCAST_ADDR = getlocal(atemip);
+        BROADCAST_ADDR = res.ip;
         break;
 
       case "tallyip":

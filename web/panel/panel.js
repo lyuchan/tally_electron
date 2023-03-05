@@ -38,12 +38,32 @@ function atemip() {
     if (atemip === "") {
         Toast.fire({
             icon: 'error',
-            title: '請輸入 ATEM IP'
+            title: 'IP不得為空'
         })
         return;
     }
+    let strAry = atemip.split('.').map(num => parseInt(num));
+    if (strAry.length != 4) {
+        Toast.fire({
+            icon: 'error',
+            title: 'IP長度錯誤'
+        })
+        return;
+    }
+    if (strAry[3] != 255) {
+        Toast.fire({
+            icon: 'error',
+            title: 'IP非廣播域'
+        })
+        return;
+    }
+    Toast.fire({
+        icon: 'success',
+        title: '成功設置ip'
+    })
+
     data = {
-        get: 'atemip',
+        get: 'broadcastip',
         ip: atemip,
     }
     window.api.send("toMain", JSON.stringify(data));
