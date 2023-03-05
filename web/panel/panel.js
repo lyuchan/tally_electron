@@ -144,6 +144,7 @@ window.api.receive("fromMain", (event) => {
     if (data.get === 'tallyip') {
         ip = data.ip;
         console.log(ip);
+        $('#table-list').empty();
         for (let i = 0; i < ip.length; i++) {
             let template = $('#col-template').text();
             template = template.replace(/{{ip}}/g, ip[i]).replace(/{{id}}/g, i + 1);

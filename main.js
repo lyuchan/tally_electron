@@ -83,7 +83,7 @@ function createWindow(w, h, preloadjs, mainpage) {
     }
   })
   mainWindow.loadFile(mainpage)
-  mainWindow.webContents.openDevTools()
+  //  mainWindow.webContents.openDevTools()
   return mainWindow;
 }
 
@@ -94,7 +94,9 @@ app.whenReady().then(() => {
 
   })
 
-
+  setInterval(() => {
+    sendtoweb(JSON.stringify({ get: "tallyip", ip: espAddresses }));
+  }, 500); // 每5秒廣播一次
   const win = createWindow(600, 900, 'preload.js', './web/index.html');
   createTray(win);
   ipcMain.on("toMain", (event, args) => {
@@ -249,6 +251,7 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', function () {
+  sendtally(BROADCAST_ADDR, JSON.stringify([{ get: "tally", pgm: 255, pwv: 255 }]))
   if (process.platform !== 'darwin') app.quit();
 })
 
