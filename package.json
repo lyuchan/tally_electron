@@ -23,6 +23,7 @@
     "electron-builder": "^23.6.0"
   },
   "dependencies": {
+    "atem-connection": "^3.2.0",
     "dgram": "^1.0.1",
     "express": "^4.18.2",
     "obs-websocket-js": "^4.0.3",

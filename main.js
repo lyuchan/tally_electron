@@ -30,7 +30,9 @@ function createTray(win) {
 }
 //obs
 const OBSWebSocket = require('obs-websocket-js');
-
+//atem
+const { Atem } = require('atem-connection');
+const atem = new Atem();
 /* Create new class using library. */
 const obs = new OBSWebSocket();
 //user data
@@ -229,22 +231,49 @@ app.whenReady().then(() => {
         .catch((error) => {
           console.error('Failed to connect to OBS WebSocket:', error);
           sendtoweb(JSON.stringify({ get: "connect", data: false }));
+          tally(0, 0)
         });
       function obsclose(timer, timer2) {
         //console.log('已斷開 OBS 連線');
         sendtoweb(JSON.stringify({ get: "error", data: "OBS斷線，請檢查連線狀況" }));
+        tally(0, 0)
         clearInterval(timer);
         clearInterval(timer2);
       }
 
-
+      atem.disconnect();
     }
     if (source == "VMIX") {
       sendtoweb(JSON.stringify({ get: "error", data: "VMIXTally即將推出敬請期待" }));
       obs.disconnect();
+      atem.disconnect();
     }
     if (source == "ATEM") {
-      sendtoweb(JSON.stringify({ get: "error", data: "ATEMTally即將推出敬請期待" }));
+      let connectedtimer = setInterval(() => {
+        sendtoweb(JSON.stringify({ get: "error", data: "ATEMIP錯誤" }));
+        atem.disconnect();
+        clearInterval(connectedtimer);
+      }, 500);
+      atem.on('connected', () => {
+        clearInterval(connectedtimer);
+        console.log('ATEM connected');
+        sendtoweb(JSON.stringify({ get: "connect", data: true }));
+        tally(0, 0)
+      });
+      atem.on('disconnected', () => {
+        console.log('ATEM disconnected');
+        sendtoweb(JSON.stringify({ get: "error", data: "ATEM斷線，請檢查連線狀況" }));
+        tally(0, 0)
+      });
+      atem.on('stateChanged', (state) => {
+        //console.log("pgm:", state.video.mixEffects[0].programInput);
+        //console.log("pvw:", state.video.mixEffects[0].previewInput);
+        tally(state.video.mixEffects[0].programInput, state.video.mixEffects[0].previewInput);
+
+      })
+
+      atem.connect(console_ip);
+
       obs.disconnect();
     }
   }
@@ -281,6 +310,7 @@ client.on('error', (err) => {
 
 client.on('message', (msg, rinfo) => {
   // console.log(`Received message from ${rinfo.address}:${rinfo.port}: ${msg}`);
+  console.log(msg.toString());
   if (!espAddresses.includes(rinfo.address)) {
     espAddresses.push(rinfo.address); // 將新的IP地址加入到陣列中
     console.log(`found new esp8266: ${rinfo.address}`);
