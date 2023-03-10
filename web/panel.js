@@ -8,7 +8,7 @@ const Toast = Swal.mixin({
     toast: true,
     position: 'bottom-right',
     showConfirmButton: false,
-    timer: 1500,
+    timer: 3000,
     timerProgressBar: true
 })
 
@@ -72,7 +72,11 @@ window.api.receive("fromMain", (event) => {
     if (data.get === 'login') {
         if (!data.password) {
 
-            swal.fire("Error", "Wrong password", "error");
+            //swal.fire("Error", "Wrong password", "error");
+            Toast.fire({
+                icon: 'error',
+                title: '帳號或密碼錯誤'
+            })
         }
     }
     if (data.get === 'atemip') {
