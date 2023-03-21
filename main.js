@@ -2,6 +2,17 @@
 const { Tray, Menu, app, BrowserWindow } = require('electron')
 const path = require('path')
 const { ipcMain } = require('electron')
+//vmix
+
+const net = require('net');
+let vmixAddress = '127.0.0.1'; // vMix的IP位址
+let vmixPort = 8099; // vMix的通訊埠號
+let dataArray = [];
+let lestpgm = [];
+let pgm = []
+let pwv;
+let lestpwv;
+let intervalId = null;
 //icon
 function createTray(win) {
 
@@ -54,7 +65,7 @@ const express = require("express");
 const webPORT = 80;
 const webapp = express();
 const server = webapp.listen(webPORT, () => {
-  console.log("Application started and Listening on port 8080");
+  //console.log("Application started and Listening on port 8080");
 });
 const SocketServer = require("ws").Server;
 const wss = new SocketServer({ server });
@@ -109,7 +120,7 @@ app.whenReady().then(() => {
         break;
       case "login":
         let login = getlogin(res.uuid, res.password);
-        console.log(login);
+        // console.log(login);
         if (login[0]) {
           win.loadFile("./web/panel/index.html")
           // win.setSize(1600, 900);
@@ -144,7 +155,7 @@ app.whenReady().then(() => {
         sendtally(res.ip, JSON.stringify([{ get: "find" }]))
         break;
       default:
-        console.log("get data error");
+      // console.log("get data error");
 
     }
   });
@@ -185,7 +196,7 @@ app.whenReady().then(() => {
       obs.connect('ws://' + console_ip)
         .then(() => {
           sendtoweb(JSON.stringify({ get: "connect", data: true }));
-          console.log('Connected to OBS WebSocket');
+          //console.log('Connected to OBS WebSocket');
           let gettallytimer = setInterval(() => {
             obs.send('GetSceneList').then((data) => {
               let res = data.scenes
@@ -244,7 +255,71 @@ app.whenReady().then(() => {
       atem.disconnect();
     }
     if (source == "VMIX") {
-      sendtoweb(JSON.stringify({ get: "error", data: "VMIXTally即將推出敬請期待" }));
+      vmixAddress = console_ip;
+      intervalId = setInterval(() => {
+        const vmixclient = new net.Socket();
+        vmixclient.connect(vmixPort, vmixAddress, function () {
+
+          vmixclient.write('TALLY\r\n'); // 發送TALLY指令
+        });
+
+
+        vmixclient.on('data', function (data) {
+          let data2 = data.toString()
+          data2 = data2.replace("VERSION OK 23.0.0.68", "")
+          data2 = data2.replace("TALLY OK ", "")
+          data2 = data2.replace(/\r?\n|\r/g, '');
+          //console.log(data2)
+
+          let i = 0;
+          dataArray = []
+          while (i < data2.length) {
+            dataArray.push(Number(data2.slice(i, i + 1)));
+            i += 1;
+            if (i < data2.length && data2[i] === '0') {
+              dataArray.push(0);
+              i += 1;
+            }
+          }
+
+          if (dataArray.length != 0) {
+            pgm = [];
+            for (let j = 0; j < dataArray.length; j++) {
+              if (dataArray[j] == 1) {
+                pgm.push(j + 1)
+              }
+            }
+            for (let j = 0; j < dataArray.length; j++) {
+              if (dataArray[j] == 2) {
+                pwv = j + 1;
+              }
+            }
+            if (pwv === undefined) {
+              pwv = 0;
+            }
+
+          }
+
+          tallyarray(pgm, pwv)
+
+          //
+          //console.log(pwv);
+          vmixclient.destroy(); // 關閉連線
+        });
+
+        vmixclient.on('close', function () {
+          // console.log('Connection ');
+
+        });
+        vmixclient.on('error', function () {
+          // console.log('Connection ');
+          sendtoweb(JSON.stringify({ get: "error", data: "VMIX斷線，請檢查連線狀況" }));
+          clearInterval(intervalId);
+          vmixclient.destroy();
+        });
+      }, 70); // 每5秒自動get tally
+      //sendtoweb(JSON.stringify({ get: "error", data: "VMIXTally即將推出敬請期待" }));
+
       obs.disconnect();
       atem.disconnect();
     }
@@ -310,10 +385,10 @@ client.on('error', (err) => {
 
 client.on('message', (msg, rinfo) => {
   // console.log(`Received message from ${rinfo.address}:${rinfo.port}: ${msg}`);
-  console.log(msg.toString());
+  //console.log(msg.toString());
   if (!espAddresses.includes(rinfo.address)) {
     espAddresses.push(rinfo.address); // 將新的IP地址加入到陣列中
-    console.log(`found new esp8266: ${rinfo.address}`);
+    //console.log(`found new esp8266: ${rinfo.address}`);
   }
 
   if (!timers[rinfo.address]) {
@@ -321,7 +396,7 @@ client.on('message', (msg, rinfo) => {
       // 刪除IP地址
       espAddresses.splice(espAddresses.indexOf(rinfo.address), 1);
       delete timers[rinfo.address];
-      console.log(`ESP8266 ${rinfo.address} removed due to inactivity`);
+      //console.log(`ESP8266 ${rinfo.address} removed due to inactivity`);
 
     }, 5000); // 設定定時器時間為25秒
   } else {
@@ -329,7 +404,7 @@ client.on('message', (msg, rinfo) => {
     timers[rinfo.address] = setTimeout(() => {
       espAddresses.splice(espAddresses.indexOf(rinfo.address), 1);
       delete timers[rinfo.address];
-      console.log(`ESP8266 ${rinfo.address} removed due to inactivity`);
+      //console.log(`ESP8266 ${rinfo.address} removed due to inactivity`);
 
     }, 5000); // 設定定時器時間為25秒
   }
@@ -348,9 +423,12 @@ function sendtally(ip, data) {
 }
 function tally(pgm, pwv) {
   webtally(pgm, pwv);
+  sendtally(BROADCAST_ADDR, JSON.stringify([{ get: "tally", pgm: [pgm], pwv: pwv }]))
+}
+function tallyarray(pgm, pwv) {
+  webtally(pgm, pwv);
   sendtally(BROADCAST_ADDR, JSON.stringify([{ get: "tally", pgm: pgm, pwv: pwv }]))
 }
-
 
 /////////////////////////websocket/////////////////////////
 
