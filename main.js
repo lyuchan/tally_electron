@@ -260,6 +260,8 @@ app.whenReady().then(() => {
           vmixclient.destroy();
         });
         vmixclient.on('close', function () {
+          clearInterval(intervalId);
+          vmixclient.destroy();
         });
         vmixclient.on('error', function () {
           sendtoweb(JSON.stringify({ get: "error", data: "VMIX斷線，請檢查連線狀況" }));
