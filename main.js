@@ -216,6 +216,7 @@ app.whenReady().then(() => {
         clearInterval(timer2);
       }
       atem.disconnect();
+      vmixclient.destroy();
     }
     if (source == "VMIX") {
       vmixAddress = console_ip;
@@ -291,6 +292,7 @@ app.whenReady().then(() => {
       })
       atem.connect(console_ip);
       obs.disconnect();
+      vmixclient.destroy();
     }
   }
 })
