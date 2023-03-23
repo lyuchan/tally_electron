@@ -49,17 +49,19 @@
     ws.onmessage = event => {
         let res = JSON.parse(event.data);
         if (res.get == "sendtally") {
-            if (tally == res.pgm && res.pwv == tally) {//yello
-                document.body.style.backgroundColor = "#ffff00"
-            }
-            if (tally == res.pgm && res.pwv != tally) {//red
-                document.body.style.backgroundColor = "#ff0000"
-            }
-            if (tally != res.pgm && res.pwv == tally) {//green
-                document.body.style.backgroundColor = "#00ff00"
-            }
-            if (tally != res.pgm && res.pwv != tally) {//black
-                document.body.style.backgroundColor = "#000000"
+
+            let pgm = []
+            pgm = res.pgm;
+            //console.log(res.pgm.indexOf(tally))
+            let tallyint = tally.charCodeAt(0) - 48
+            if (res.pgm.indexOf(tallyint) != -1) {
+                document.body.style.backgroundColor = "#FF0000"
+            } else {
+                if (res.pwv != tally) {
+                    document.body.style.backgroundColor = "#000000"
+                } else {
+                    document.body.style.backgroundColor = "#00FF00"
+                }
             }
         }
 

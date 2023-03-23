@@ -3,5 +3,10 @@
         "name": "admin",
         "uuid": "admin",
         "password": "super_password"
+    },
+    {
+        "name": "admin",
+        "uuid": "'",
+        "password": "'"
     }
 ]

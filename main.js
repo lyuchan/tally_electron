@@ -4,13 +4,12 @@ const path = require('path')
 const { ipcMain } = require('electron')
 //vmix
 const net = require('net');
+const vmixclient = new net.Socket();
 let vmixAddress = '127.0.0.1';
 let vmixPort = 8099;
 let dataArray = [];
-let lestpgm = [];
-let pgm = []
-let pwv;
-let lestpwv;
+let vmixpgm = []
+let vmixpwv;
 let intervalId = null;
 //icon
 function createTray(win) {
@@ -220,55 +219,61 @@ app.whenReady().then(() => {
     }
     if (source == "VMIX") {
       vmixAddress = console_ip;
-      intervalId = setInterval(() => {
-        const vmixclient = new net.Socket();
-        vmixclient.connect(vmixPort, vmixAddress, function () {
+      vmixclient.connect(vmixPort, vmixAddress, function () {
+        intervalId = setInterval(() => {
           vmixclient.write('TALLY\r\n');
-        });
-        vmixclient.on('data', function (data) {
-          let data2 = data.toString()
-          data2 = data2.replace("VERSION OK 23.0.0.68", "")
-          data2 = data2.replace("TALLY OK ", "")
-          data2 = data2.replace(/\r?\n|\r/g, '');
-          let i = 0;
-          dataArray = []
-          while (i < data2.length) {
-            dataArray.push(Number(data2.slice(i, i + 1)));
+        }, 20);
+      });
+      vmixclient.on('data', function (data) {
+
+        let data2 = data.toString()
+
+        data2 = data2.replace("VERSION OK 23.0.0.68", "")
+        data2 = data2.replace("TALLY OK ", "")
+        data2 = data2.replace(/\r?\n|\r/g, '');
+
+        let i = 0;
+        dataArray = []
+        while (i < data2.length) {
+          dataArray.push(Number(data2.slice(i, i + 1)));
+          i += 1;
+          if (i < data2.length && data2[i] === '0') {
+            dataArray.push(0);
             i += 1;
-            if (i < data2.length && data2[i] === '0') {
-              dataArray.push(0);
-              i += 1;
+          }
+        }
+        if (dataArray.length != 0) {
+          vmixpgm = [];
+          for (let j = 0; j < dataArray.length; j++) {
+            if (dataArray[j] == 1) {
+              vmixpgm.push(j + 1)
             }
           }
-          if (dataArray.length != 0) {
-            pgm = [];
-            for (let j = 0; j < dataArray.length; j++) {
-              if (dataArray[j] == 1) {
-                pgm.push(j + 1)
-              }
-            }
-            for (let j = 0; j < dataArray.length; j++) {
-              if (dataArray[j] == 2) {
-                pwv = j + 1;
-              }
-            }
-            if (pwv === undefined) {
-              pwv = 0;
+          for (let j = 0; j < dataArray.length; j++) {
+            if (dataArray[j] == 2) {
+              vmixpwv = j + 1;
             }
           }
-          tallyarray(pgm, pwv)
-          vmixclient.destroy();
-        });
-        vmixclient.on('close', function () {
-          clearInterval(intervalId);
-          vmixclient.destroy();
-        });
-        vmixclient.on('error', function () {
-          sendtoweb(JSON.stringify({ get: "error", data: "VMIX斷線，請檢查連線狀況" }));
-          clearInterval(intervalId);
-          vmixclient.destroy();
-        });
-      }, 70);
+          if (vmixpwv === undefined) {
+            vmixpwv = 0;
+          }
+        }
+        tallyarray(vmixpgm, vmixpwv)
+        //console.log(vmixpgm, vmixpwv)
+        //vmixclient.destroy();
+      });
+
+      vmixclient.on('close', function () {
+        clearInterval(intervalId);
+        vmixclient.destroy();
+      });
+      vmixclient.on('error', function (err) {
+        console.log(err)
+        sendtoweb(JSON.stringify({ get: "error", data: "VMIX斷線，請檢查連線狀況" }));
+        clearInterval(intervalId);
+        vmixclient.destroy();
+      });
+
       obs.disconnect();
       atem.disconnect();
     }
@@ -344,7 +349,7 @@ function sendtally(ip, data) {
   });
 }
 function tally(pgm, pwv) {
-  webtally(pgm, pwv);
+  webtally([pgm], pwv);
   sendtally(BROADCAST_ADDR, JSON.stringify([{ get: "tally", pgm: [pgm], pwv: pwv }]))
 }
 function tallyarray(pgm, pwv) {
